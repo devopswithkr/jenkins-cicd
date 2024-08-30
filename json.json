@@ -1,0 +1,77 @@
+def base_path = //path of Jenkins Job
+// def grade = ""  //grade
+// def environment = //environment
+def resource_path = "/DevQa/decloud-function/integration"  // path of resource - INPUT PATH OF RESOURCE
+//provide Path of resource changed
+def working_dir = base_path + resource_path // path of working directory
+pipeline {
+    agent {label 'master-node'}
+  options{
+    disableConcurrentBuilds()
+    skipDefaultCheckout(true)
+  }
+  
+    stages {
+      
+      stage('checkout'){
+        steps{
+          checkout scm
+        }
+      }
+    
+ 
+        // terraform stages upto plan
+        stage('terraform stage'){
+          when{
+            changeset "GCP/**"
+          } // runs the stage only if changes are made inside GCP/Env/ folder
+            steps{
+                script{
+                    dir(working_dir){
+                        sh 'echo "Running terraform init -reconfigure and plan"'
+                        sh 'terraform init -no-color -reconfigure && terraform plan -no-color'
+                        // sh 'terraform init -no-color && export TF_VAR_${params.tf_var_name}=${params.object_path} && terraform plan -no-color' 
+                    }
+                }
+            }
+        }
+
+
+        //will wait for approval
+        stage('approval'){
+            when{
+                changeset "GCP/**"
+                branch 'master'
+            } // runs the stage for master branch only if changes are made inside GCP/Env/ folder
+            steps{
+                sh 'echo "Want to approve ?"'
+                
+            }
+            post {
+                always {
+                // Prompt for approval from only users in the 'admin' group
+                input message: "Apply changes?",
+                        submitter: 'admin'
+                }
+            }
+        }
+
+        stage('terraform apply'){
+            when{
+                changeset "GCP/Env/**"
+                branch 'master'
+            } // // runs the stage for master branch only if changes are made in GCP/Env folder
+            steps{
+                script{
+                    dir(working_dir){
+                        sh 'terraform apply -auto-approve -no-color'
+                    }
+                }
+               
+            }
+        }
+
+    }
+}
+
+
