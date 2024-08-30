@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        TF_VAR_GCP_PROJECT = crested-wharf-432108-i1 // Replace with your GCP project ID
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-service-account') // Jenkins credentials ID for GCP service account
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                sh '''
+                terraform init \
+                  -backend-config="bucket=your-terraform-state-bucket" \
+                  -backend-config="prefix=terraform/state"
+                '''
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                sh 'terraform plan -out=tfplan'
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                input message: 'Apply Terraform Plan?', ok: 'Apply'
+                sh 'terraform apply tfplan'
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Terraform pipeline completed successfully!'
+        }
+        failure {
+            echo 'Terraform pipeline failed.'
+        }
+    }
+}
