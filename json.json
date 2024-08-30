@@ -1,4 +1,4 @@
-def base_path = "GCP/Env" //path of Jenkins Job
+def base_path = //path of Jenkins Job
 // def grade = ""  //grade
 // def environment = //environment
 def resource_path = "/DevQa/dev/cloud-function/integration"  // path of resource - INPUT PATH OF RESOURCE
