@@ -1,7 +1,7 @@
 def base_path = //path of Jenkins Job
 // def grade = ""  //grade
 // def environment = //environment
-def resource_path = "/DevQa/dev/cloud-function/integration"  // path of resource - INPUT PATH OF RESOURCE
+def resource_path = "/DevQa/decloud-function/integration"  // path of resource - INPUT PATH OF RESOURCE
 //provide Path of resource changed
 def working_dir = base_path + resource_path // path of working directory
 pipeline {
